@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="departements">
+        <item>Ille et Villaine</item>
+        <item>Ille</item>
+        <item>Morbihan</item>
+        <item>Corse</item>
+        <item>Nord</item>
+        <item>Centre</item>
+    </string-array>
+
+
+</resources>

@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menuResetButton"
+        android:title="Reset"/>
+    <item
+        android:id="@+id/menuAddTelNumberButton"
+        android:title="Enter a Number"/>
+</menu>
