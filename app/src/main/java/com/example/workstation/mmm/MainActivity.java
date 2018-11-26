@@ -1,216 +1,145 @@
 package com.example.workstation.mmm;
 
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputType;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.MenuInflater;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.Spinner;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-class PassingObj implements Parcelable {
 
-    private String nom;
-    private String prenom;
-    private String naissance;
-    private String ville;
-    private String region;
-    private String num;
+class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
+    private ArrayList<PassingObj> mDataset;
 
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        @BindView(R.id.textViewNom) TextView nom;
+        @BindView(R.id.textViewPrenom) TextView prenom;
+        @BindView(R.id.textViewNaissance) TextView naissance;
+        @BindView(R.id.textViewVille) TextView ville;
+        @BindView(R.id.textViewRegion) TextView region;
+        @BindView(R.id.textViewNumber) TextView number;
 
-    public PassingObj(String nom, String prenom, String naissance,
-                      String ville, String region, String num){
-        this.nom = nom;
-        this.prenom = prenom;
-        this.naissance = naissance;
-        this.ville = ville;
-        this.region = region;
-        this.num= num;
-
-    }
-
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        //out.writeInt(mData);
-        out.writeString(nom);
-        out.writeString(prenom);
-        out.writeString(naissance);
-        out.writeString(ville);
-        out.writeString(region);
-        out.writeString(num);
-
-    }
-
-    public static final Parcelable.Creator<PassingObj> CREATOR
-            = new Parcelable.Creator<PassingObj>() {
-        public PassingObj createFromParcel(Parcel in) {
-            return new PassingObj(in);
+        public MyViewHolder(View v) {
+            super(v);
+            nom = v.findViewById(R.id.textViewNom);
+            prenom = v.findViewById(R.id.textViewPrenom);
+            naissance = v.findViewById(R.id.textViewNaissance);
+            ville = v.findViewById(R.id.textViewVille);
+            region = v.findViewById(R.id.textViewRegion);
+            number = v.findViewById(R.id.textViewNumber);
         }
+    }
 
-        public PassingObj[] newArray(int size) {
-            return new PassingObj[size];
-        }
-    };
+    // Provide a suitable constructor (depends on the kind of dataset)
+    public MyAdapter(ArrayList<PassingObj> myDataset) {
+        mDataset = myDataset;
+    }
 
-    private PassingObj(Parcel in) {
-        //mData = in.readInt();
-        this.nom = in.readString();
-        this.prenom = in.readString();
-        this.naissance = in.readString();
-        this.ville = in.readString();
-        this.region = in.readString();
-        this.num= in.readString();
+    // Create new views (invoked by the layout manager)
+    @Override
+    public MyAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                     int viewType) {
+        // create a new view
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View view = inflater.inflate(R.layout.person, parent, false);
+        MyViewHolder mvh = new MyViewHolder(view);
+        return mvh;
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(MyViewHolder holder, int position) {
+        // - get element from your dataset at this position
+        // - replace the contents of the view with that element
+
+        holder.nom.setText(mDataset.get(position).getNom());
+        holder.prenom.setText(mDataset.get(position).getPrenom());
+        holder.naissance.setText(mDataset.get(position).getNaissance());
+        holder.ville.setText(mDataset.get(position).getVille());
+        holder.region.setText(mDataset.get(position).getRegion());
+        holder.number.setText(mDataset.get(position).getNum());
 
     }
 
-    public String getNom() {
-        return nom;
-    }
-
-    public String getPrenom() {
-        return prenom;
-    }
-
-    public String getNaissance() {
-        return naissance;
-    }
-
-    public String getVille() {
-        return ville;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public String getNum() {
-        return num;
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return mDataset.size();
     }
 }
 
-public class MainActivity extends AppCompatActivity {
-    @BindView(R.id.editTextNom) EditText nom;
-    @BindView(R.id.editTextPrenom) EditText prenom;
-    @BindView(R.id.editTextNaissance) EditText naissance;
-    @BindView(R.id.editTextVille) EditText ville;
-    @BindView(R.id.spinnerDepartements) Spinner region;
-    EditText num;
 
+public class MainActivity extends AppCompatActivity {
+    @BindView(R.id.recyclerView) RecyclerView recyclerView;
+    @BindView(R.id.buttonAdd) Button add;
+    private LinearLayoutManager layoutManager;
+    private MyAdapter adapter;
+
+
+    ArrayList<PassingObj> dataset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dataset = new ArrayList<PassingObj>();
         setContentView(R.layout.main);
         ButterKnife.bind(this);
 
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        recyclerView.setHasFixedSize(true);
+
+        // use a linear layout manager
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        // specify an adapter (see also next example)
+        adapter = new MyAdapter(dataset);
+        recyclerView.setAdapter(adapter);
+
     }
 
-    public void validateButton(View view){
+    public void addButton(View view){
         Toast.makeText(getApplicationContext(),"validated", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, PostActivity.class);
+        Intent intent = new Intent(this, FormActivity.class);
 
-        PassingObj passingObj;
-        if(num == null) {
-            passingObj = new PassingObj(nom.getText().toString(), prenom.getText().toString(),
-                    naissance.getText().toString(), ville.getText().toString(),
-                    region.getSelectedItem().toString(), "");
-        }else {
-            passingObj = new PassingObj(nom.getText().toString(), prenom.getText().toString(),
-                    naissance.getText().toString(), ville.getText().toString(),
-                    region.getSelectedItem().toString(), num.getText().toString());
-        }
-
-        intent.putExtra("passingObj", passingObj);
-        /*
-        intent.putExtra("nom", nom.getText().toString());
-        intent.putExtra("prenom", prenom.getText().toString());
-        intent.putExtra("naissance", naissance.getText().toString());
-        intent.putExtra("ville", ville.getText().toString());
-        intent.putExtra("region", region.getSelectedItem().toString());
-
-        if(num!=null)
-            intent.putExtra("num", num.getText().toString());
-        */
-
-        startActivity(intent);
-    }
-
-    public void villeButton(View view){
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://fr.wikipedia.org"));
-        startActivity(intent);
+        startActivityForResult(intent,0);
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        Log.i("Menu","menu created");
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu, menu);
-        return true;
-    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 0) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                // The user picked a contact.
+                // The Intent's data Uri identifies which contact was selected.
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        Log.i("Menu","item clicked");
-        switch(item.getItemId()){
-            case R.id.menuResetButton:
-                resetFields();
-                break;
-            case R.id.menuAddTelNumberButton:
-                addNumber();
-                break;
+                // Do something with the contact here (bigger example below)
+                Bundle extras = data.getExtras();
+
+                PassingObj passingObj = extras.getParcelable("passingObj");
+
+                dataset.add(passingObj);
+                adapter.notifyDataSetChanged();
+            }
         }
-        return true;
     }
-
-    public void resetFields(){
-        nom.setText("");
-        prenom.setText("");
-        naissance.setText("");
-        ville.setText("");
-    }
-
-    public void addNumber(){
-        if(this.num == null) {
-            this.num = new EditText(getApplicationContext());
-            this.num.setText("");
-            this.num.setHint("Number");
-            this.num.setId(View.generateViewId());
-            this.num.setInputType(InputType.TYPE_CLASS_PHONE);
-            this.num.setWidth(360);
-
-            ConstraintSet set = new ConstraintSet();
-            ConstraintLayout layout;
-
-            layout = findViewById(R.id.main);
-            layout.addView(this.num);
-            set.clone(layout);
-            set.connect(this.num.getId(), ConstraintSet.TOP, R.id.spinnerDepartements, ConstraintSet.BOTTOM, 320);
-            set.setMargin(this.num.getId(), ConstraintSet.LEFT, 12);//marche po
-            set.applyTo(layout);
-
-        }else{
-            ConstraintLayout cl = findViewById(R.id.main);
-            cl.removeView(this.num);
-            this.num = null;
-        }
-
-    }
-
-
 }
